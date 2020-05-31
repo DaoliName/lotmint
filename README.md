@@ -9,6 +9,7 @@ We present LotMint, a permissionless blockchain, with a purposely low set bar fo
 ## The LotMint Blockchain
 
 The LotMint blockchain has made a number of changes to ByzCoin. Below we describe the LotMint blockchain with changes from ByzCoin being explained, and important security properties analyzed in enumeration.
+
 1. The ﬁrst and the most important change is on the block mining mechanism. In LotMint, block mining shall use the decentralized clock enabled time throttle mechanism
 
 ![LotMint Figure 2](https://raw.githubusercontent.com/DaoliName/lotmint/master/lotmint/figure2.png)
@@ -17,9 +18,7 @@ that we have described in Section 4. Each new epoch begins with a mining competi
 
 2. After elapsing of ∆ interval of time (see Section 3.4 for the meaning of ∆) from the earliest written self-claimed broadcast time in one of the competing KB TXs, the network shall become with absence of KB TX. The current BFT leader shall propose a ByzCoin CoSi tree to try to have all competing KB TXs to be BFT quorum approved to enter the blockchain. Upon reaching the BFT quorum consensus, the root of this CoSi tree becomes the new reference block RB for to be referenced by a new round of mining competition.
 
-3. If the current BFT leader is detected to be censoring some transactions, including some KB TXs, the BFT leader is said to have made a “censorship-error” omission. Upon detecting a censorship-error omission, other BFT trustees shall follow the current CoSi tree to have the censorship omitted TXs and/or KB TXs to be BFT quorum approved to enter the blockchain. This “censorship-error” correction is shown by the “A SubLeader Led Authority” sub-CoSi-tree in Figure 2. A punitive de-incentive scheme shall apply to the BFT leader who is BFT quorum agreed to have factually made a censorship-error by the very existence of a sub-CoSi-tree. In case of a number of
-
-15 trustees competing in censorship error correction, the deterministic de-forking method of ByzCoin (Figure 5 of [15]) can break forks.
+3. If the current BFT leader is detected to be censoring some transactions, including some KB TXs, the BFT leader is said to have made a “censorship-error” omission. Upon detecting a censorship-error omission, other BFT trustees shall follow the current CoSi tree to have the censorship omitted TXs and/or KB TXs to be BFT quorum approved to enter the blockchain. This “censorship-error” correction is shown by the “A SubLeader Led Authority” sub-CoSi-tree in Figure 2. A punitive de-incentive scheme shall apply to the BFT leader who is BFT quorum agreed to have factually made a censorship-error by the very existence of a sub-CoSi-tree. In case of a number of trustees competing in censorship error correction, the deterministic de-forking method of ByzCoin (Figure 5 of [15]) can break forks.
 
 4. If the current leader is detected to be proposing a CoSi to contain any message with a safety error, other than a censorship-error case, this leader is said to have conducted a “safety-error” attack. Upon trustees detecting a safety-error attack, a BFT change of leader event shall take place. This safety-error correction procedure is the same as that ByzCoin’s change-of-leader event does.
 
@@ -31,9 +30,7 @@ that we have described in Section 4. Each new epoch begins with a mining competi
 
 8. We have ﬂattened the much eased PoW mining opportunities evenly distributed to the entire duration of an epoch. Each root of a CoSi tree is viewed by the miners a new reference block RB to reference mining new blocks. All lucky KB TXs which references any RB anywhere in an epoch are time-tie forks, even though they may have forked diﬀerent RBs.
 
-9. An epoch shall end upon reaching a pre-determined, and suﬃcient number of timetie KB TXs having entered BFT quorum approved CoSi trees. The ﬁnal CoSi tree in the epoch should be a CoSi on the KB TX which is deterministically de-forked from all quorum approved time-tie KB TXs in the current epoch, using the deterministic
-
-16 de-forking method of ByzCoin (see Figure 5 of [15]). This CoSi tree deﬁnes the time block TB for the next epoch, and it should contain a Bitcoin like block timestamp, to function deﬁning a new GC Cycle(TB) of the global and logic clock.
+9. An epoch shall end upon reaching a pre-determined, and suﬃcient number of timetie KB TXs having entered BFT quorum approved CoSi trees. The ﬁnal CoSi tree in the epoch should be a CoSi on the KB TX which is deterministically de-forked from all quorum approved time-tie KB TXs in the current epoch, using the deterministic de-forking method of ByzCoin (see Figure 5 of [15]). This CoSi tree deﬁnes the time block TB for the next epoch, and it should contain a Bitcoin like block timestamp, to function deﬁning a new GC Cycle(TB) of the global and logic clock.
 
 10. With the DT time-throttle method’s embracing mining time-tie forks, the deterministic de-forking method of ByzCoin can select a plural number of BFT leaders with an ordered winning sequence. They can be thought of as “multi-core” CPUs for strengthening the BFT consortium as additional trustees, e.g., to replace safety-error attacking leader(s). This way of strengthening the BFT trustees consortium can improve fairness, safety, liveness and robustness qualities of the blockchain, in addition to energy conservation.
 
