@@ -2,15 +2,20 @@ LotMint区块链基于[Cothority](https://github.com/dedis/cothority)项目框�
 
 **主要新增功能：**
 
-* 添加类似Bitcoin的挖矿功能
-* 实现KeyBlock功能
-* 添加LotMint文档中的DT功能
-    - 计算
-* 实现基于BFT Cosi的KeyBlock
+* 挖矿功能
+    - 实现类似Bitcoin的POW挖矿功能
+    - 构造KeyBlock并进行广播
+* KeyBlock功能
+    - 实现类似Bitcoin-NG提出的KeyBlock链功能
+* KeyBlock上BFT Cosi的Leader选举
+* DT功能
+    - 实现LotMint文档中的DT功能
 
 
 **参考:**
 
 https://daoliname.com/LotMint.pdf
+
 https://github.com/dedis/cothority
+
 https://github.com/bitcoin/bitcoin
