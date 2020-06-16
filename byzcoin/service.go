@@ -1351,7 +1351,11 @@ func (s *Service) catchupAll() error {
 		// Get the latest block known by the Cothority.
 		reply, err := cl.GetUpdateChain(sb.Roster, sb.Hash)
 		if err != nil {
-			return xerrors.Errorf("getting chain: %v", err)
+			// Might be that the other nodes are not yet up,
+			// so just continue with the other chains.
+			// Call to s.catchup will probably also fail, so skip it.
+			log.Errorf("couldn't get update chain: %+v", err)
+			continue
 		}
 
 		if len(reply.Update) == 0 {
@@ -1446,7 +1450,8 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 			// Asked to catch up on an unknown chain, but don't want to download, instead only replay
 			// the blocks. This is mostly useful for testing, in a real deployement the catchupDownloadAll
 			// will be smaller than any chain that is online for more than a day.
-			log.Warn(s.ServerIdentity(), "problem with trie, will create a new one:", err)
+			log.Warnf("%s: problem with trie, "+
+				"will create a new one: %+v", s.ServerIdentity(), err)
 			genesis, err := cl.GetSingleBlock(sb.Roster, sb.SkipChainID())
 			if err != nil {
 				log.Error("Couldn't get genesis-block:", err)
@@ -2089,19 +2094,34 @@ func (s *Service) verifySkipBlock(newID []byte, newSB *skipchain.SkipBlock) bool
 			log.Error("Didn't accept the new roster:", err)
 			return false
 		}
+		previous := s.db().GetByID(newSB.BackLinkIDs[0])
+		if previous != nil {
+			var prevHeader DataHeader
+			err := protobuf.Decode(previous.Data, &prevHeader)
+			if err != nil {
+				log.Errorf("couldn't decode previous header: %v", err)
+				return false
+			}
+
+			if header.Timestamp <= prevHeader.Timestamp {
+				log.Errorf("cannot create block with earlier timestamp"+
+					" than previous block: %v < %v",
+					time.Unix(0, header.Timestamp),
+					time.Unix(0, prevHeader.Timestamp))
+				return false
+			}
+		}
 	}
 
 	window := 4 * config.BlockInterval
 	if window < minTimestampWindow {
 		window = minTimestampWindow
 	}
-
-	now := time.Now()
-	t1 := now.Add(-window)
-	t2 := now.Add(window)
+	t1 := time.Now().Add(window)
 	ts := time.Unix(0, header.Timestamp)
-	if ts.Before(t1) || ts.After(t2) {
-		log.Errorf("timestamp %v is outside the acceptable range %v to %v", ts, t1, t2)
+	if ts.After(t1) {
+		log.Errorf("timestamp for new block is later than time.Now + 4*config."+
+			"BlockInterval: %v > %v", ts, t1)
 		return false
 	}
 
@@ -2173,7 +2193,7 @@ func (s *Service) createStateChanges(sst *stagingStateTrie, scID skipchain.SkipB
 		if err != nil {
 			tx.Accepted = false
 			txOut = append(txOut, tx)
-			log.Warn(s.ServerIdentity(), err)
+			log.Warnf("%s: %+v", s.ServerIdentity(), err)
 		} else {
 			// We would like to be able to check if this txn is so big it could never fit into a block,
 			// and if so, drop it. But we can't with the current API of createStateChanges.
@@ -2422,6 +2442,7 @@ func (s *Service) executeInstruction(gs GlobalState, cin []Coin,
 	err error) {
 	defer func() {
 		if re := recover(); re != nil {
+			log.Lvl2("Recovered from panic:\n", log.Stack())
 			err = xerrors.Errorf("executing instr: %v", re)
 		}
 	}()

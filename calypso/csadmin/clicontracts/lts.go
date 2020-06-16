@@ -3,6 +3,7 @@ package clicontracts
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"os"
 
@@ -58,8 +59,20 @@ func LTSSpawn(c *cli.Context) error {
 		return xerrors.Errorf("failed to get the signer counters: %v", err)
 	}
 
+	export := c.Bool("export")
+
 	// Make the transaction and get its proof
 	ltsInstanceInfo := calypso.LtsInstanceInfo{Roster: cfg.Roster}
+	if rFile := c.String("roster"); rFile != "" {
+		r, err := lib.ReadRoster(rFile)
+		if err != nil {
+			return fmt.Errorf("couldn't load roster: %v", err)
+		}
+		if !export {
+			log.Info("Setting roster to:", r.List)
+		}
+		ltsInstanceInfo.Roster = *r
+	}
 	buf, err := protobuf.Encode(&ltsInstanceInfo)
 	if err != nil {
 		return xerrors.Errorf("failed to encode instance info: %v", err)
@@ -99,7 +112,7 @@ func LTSSpawn(c *cli.Context) error {
 	}
 
 	iidStr := hex.EncodeToString(newInstID)
-	if c.Bool("export") {
+	if export {
 		reader := bytes.NewReader([]byte(iidStr))
 		_, err = io.Copy(os.Stdout, reader)
 		if err != nil {
@@ -110,6 +123,5 @@ func LTSSpawn(c *cli.Context) error {
 
 	log.Infof("Spawned a new LTS contract. Its instance id is:\n"+
 		"%s", iidStr)
-
 	return nil
 }

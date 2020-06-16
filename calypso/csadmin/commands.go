@@ -118,6 +118,11 @@ var cmds = cli.Commands{
 								Usage:  "the ByzCoin config to use (required)",
 							},
 							cli.StringFlag{
+								Name: "roster",
+								Usage: "the path of a roster file to be used as argument for the spawn. " +
+									"If not provided the config roster is used (optional)",
+							},
+							cli.StringFlag{
 								Name:  "darc",
 								Usage: "DARC with the right to create an LTS (default is the admin DARC)",
 							},
